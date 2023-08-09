@@ -7,10 +7,11 @@ To extract, clean, upload and analyse data sets relating to a (dummy) multi-nati
 My goal was to write code that is easy to read and follow, whilst applying the DRY (don't repeat yourself) principle. To that end, functions and methods are re-used wherever possible
 
 ## Stages
-The project so far (8 August 2023) has the following stages:
+The project so far (9 August 2023) has the following stages:
 1. Download various data sets using Python (see below) from AWS RDS and S3
 2. Clean the data in Python using relevant libraries such as Pandas, Numpy, Datetime, Regex
 3. Upload the cleaned data sets to tables in a PostgreSQL database
+4. Refactoring to improve code readability and adding a function to clean card_numbers in dim_card_details (see below)
 
 ## Python files & libraries (created by the author)
 
