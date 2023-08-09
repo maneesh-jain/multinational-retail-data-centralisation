@@ -1,116 +1,89 @@
-# %% connect to AWS db, read into Pandas df
 from database_utils import DatabaseConnector 
 from data_extraction import DataExtractor
 from data_cleaning import DataCleaning
-import pandas as pd
 
+'''Connects to AWS, lists tables in database.'''
 db_creds = 'C:\\Users\\Maneesh\\Documents\\AiCore\lessons\\retail\\db_creds.yaml'
 db = DatabaseConnector(db_creds)
 tables = db.list_db_tables()
+print(f"Tables in AWS database: {tables}\n")
 
-print(f'Tables in database:\n{tables}\n') # list tables
+def users_and_orders():
+    '''Reads users and orders tables from AWS into dataframes, cleans, uploads to SQL database.'''
+    engine = db.init_db_engine()
+    de = DataExtractor(engine)
 
-# %% clean dataframes
-engine = db.init_db_engine()
-de = DataExtractor(engine)
+    legacy_users = de.read_rds_table('legacy_users')
+    df_to_clean = DataCleaning(legacy_users)
+    cleaned_users = df_to_clean.clean_users()
+    db.upload_to_db(cleaned_users, 'dim_users')
 
-legacy_users = de.read_rds_table('legacy_users')
-df_to_clean = DataCleaning(legacy_users)
-cleaned_users = df_to_clean.clean_users()
+    orders_table = de.read_rds_table('orders_table')
+    df_to_clean = DataCleaning(orders_table)
+    cleaned_orders = df_to_clean.clean_orders_table()
+    db.upload_to_db(cleaned_orders, 'orders_table')
 
-orders_table = de.read_rds_table('orders_table')
-df_to_clean = DataCleaning(orders_table)
-cleaned_orders = df_to_clean.clean_orders_table()
+def card_details():
+    '''Extracts card_details from PDF into df, cleans, uploads to SQL database.'''
+    de = DataExtractor()
+    URL = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
+    card_details = de.retrieve_pdf_data(URL)
+    df_to_clean = DataCleaning(card_details)
+    cleaned_card_details = df_to_clean.clean_card_data()
+    db.upload_to_db(cleaned_card_details, 'dim_card_details')
 
-print('=== All Dataframes cleaned ===\n')
+def get_number_of_stores():
+    '''Lists number of stores in AWS database.'''
+    from data_extraction import DataExtractor
+    de = DataExtractor()
+    url_num_stores = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores'
+    url_store = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/' # add store number
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer your_token_here", 
+        "X-API-Key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"}
+    num_stores = de.list_number_of_stores(url_num_stores, headers)
+    print(num_stores)
 
-# %% upload 'users' df to local SQL db
-db.upload_to_db(cleaned_users, 'dim_users')
-print('=== Dataframe uploaded to PostgreSQL database ===\n')
+def stores():
+    '''Retrieves data for every store from AWS, reads into Pandas Dataframe, cleans, uploads to SQL database.'''
+    from data_extraction import DataExtractor
+    de = DataExtractor()
+    url_store = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/' # add store number
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer your_token_here", 
+        "X-API-Key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"}
+    store_details = de.retrieve_stores_data(url_store, headers, 451)
+    df_to_clean = DataCleaning(store_details)
+    cleaned_store_details = df_to_clean.clean_store_details()
+    db = DatabaseConnector()
+    db.upload_to_db(cleaned_store_details, 'dim_store_details')
 
-# %% extract card_details from PDF into df
-from data_extraction import DataExtractor
-de = DataExtractor()
-URL = 'https://data-handling-public.s3.eu-west-1.amazonaws.com/card_details.pdf'
-card_details = de.retrieve_pdf_data(URL)
+def products():
+    '''Downloads products data from S3, cleans, uploads to SQL database.'''
+    from data_extraction import DataExtractor
+    de = DataExtractor()
+    products = de.extract_from_s3_to_csv('s3://data-handling-public/products.csv')
+    df_to_clean = DataCleaning(products)
+    cleaned_products = df_to_clean.convert_product_weights()
+    cleaned_products = df_to_clean.clean_products_data()
+    db = DatabaseConnector()
+    db.upload_to_db(cleaned_products, 'dim_products')
 
-# %% clean 'card_details' df
-from data_cleaning import DataCleaning
-df_to_clean = DataCleaning(card_details)
-cleaned_card_details = df_to_clean.clean_card_data()
+def date_details():
+    '''Downloads date_details from S3, cleans, uploads to SQL database.'''
+    from data_extraction import DataExtractor
+    de = DataExtractor()
+    date_details = de.extract_from_s3_to_json('data-handling-public', 'date_details.json')
+    df_to_clean = DataCleaning(date_details)
+    cleaned_date_details = df_to_clean.clean_date_details()
+    db = DatabaseConnector()
+    db.upload_to_db(cleaned_date_details, 'dim_date_times')
 
-# %% upload 'card_details' df to local SQL db
-db = DatabaseConnector()
-db.upload_to_db(cleaned_card_details, 'dim_card_details')
-print('=== Dataframe uploaded to PostgreSQL database ===\n')
-
-# %% list number of stores in AWS db
-from data_extraction import DataExtractor
-de = DataExtractor()
-url_num_stores = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/number_stores'
-url_store = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/' # add store number
-headers = {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer your_token_here", 
-    "X-API-Key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"}
-de.list_number_of_stores(url_num_stores, headers)
-
-# %% retrieve data for each store from AWS db, read into Pandas df
-from data_extraction import DataExtractor
-de = DataExtractor()
-url_store = 'https://aqj7u5id95.execute-api.eu-west-1.amazonaws.com/prod/store_details/' # add store number
-headers = {
-    "Content-Type": "application/json",
-    "Authorization": "Bearer your_token_here", 
-    "X-API-Key": "yFBQbwXe9J3sd6zWVAMrK6lcxxr0q1lr2PT6DDMX"}
-store_details = de.retrieve_stores_data(url_store, headers, 451)
-
-# %% clean store data
-from data_cleaning import DataCleaning
-df_to_clean = DataCleaning(store_details)
-cleaned_store_details = df_to_clean.clean_store_details()
-
-# %% upload 'store_details' df to local SQL db
-from database_utils import DatabaseConnector 
-db = DatabaseConnector()
-db.upload_to_db(cleaned_store_details, 'dim_store_details')
-print('=== Dataframe uploaded to PostgreSQL database ===\n')
-
-# %% download products data from S3
-from data_extraction import DataExtractor
-de = DataExtractor()
-products = de.extract_from_s3_to_csv('s3://data-handling-public/products.csv')
-
-# %% clean products data
-from data_cleaning import DataCleaning
-df_to_clean = DataCleaning(products)
-cleaned_products = df_to_clean.convert_product_weights()
-cleaned_products = df_to_clean.clean_products_data()
-
-# %% upload 'products' df to local SQL db
-from database_utils import DatabaseConnector 
-db = DatabaseConnector()
-db.upload_to_db(cleaned_products, 'dim_products')
-print('=== Dataframe uploaded to PostgreSQL database ===\n')
-
-# %% upload 'orders_table' df to local SQL db
-from database_utils import DatabaseConnector 
-db = DatabaseConnector()
-db.upload_to_db(cleaned_orders, 'orders_table')
-print('=== Dataframe uploaded to PostgreSQL database ===\n')
-
-# %% download date_details from S3
-from data_extraction import DataExtractor
-de = DataExtractor()
-date_details = de.extract_from_s3_to_json('data-handling-public', 'date_details.json')
-
-# %% clean'date_details'
-from data_cleaning import DataCleaning
-df_to_clean = DataCleaning(date_details)
-cleaned_date_details = df_to_clean.clean_date_details()
-
-# %% upload 'date_details' df to local SQL db
-from database_utils import DatabaseConnector 
-db = DatabaseConnector()
-db.upload_to_db(cleaned_date_details, 'dim_date_times')
-print('=== Dataframe uploaded to PostgreSQL database ===\n')
+users_and_orders()
+card_details()
+get_number_of_stores()
+stores()
+products()
+date_details()

@@ -1,1 +1,4 @@
 db_creds.yaml
+__pycache__/
+date_details.json
+products.csv

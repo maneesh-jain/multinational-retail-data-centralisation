@@ -5,98 +5,91 @@ class DataCleaning:
     def __init__(self, df):
         self.df = df
 
-    def clean_store_details(self):
-        print("CLEANING 'store_details'...")
-        dt.del_rows_with_string(self.df, 'store_code', '-', False)
-        dt.replace_string(self.df, 'continent', 'eeEurope', 'Europe')
-        dt.replace_string(self.df, 'continent', 'eeAmerica', 'America')
-        columns_to_clean = {
-                                'longitude':'float',
-                                'lat':'delete_column',
-                                'staff_numbers':'integer',
-                                'opening_date':'date',
-                                'store_type':'category',
-                                'latitude':'float',
-                                'country_code': 'category',
-                                'continent':'category'
-                                }
-        clean_df = dt.clean_df(self.df, columns_to_clean)
-        print("COMPLETED\n")
-        return clean_df
-    
     def clean_users(self):
+        '''Cleans users details.'''
         print("CLEANING 'users'...")
-        dt.del_rows_with_string(self.df,'first_name', 'NULL', True)
-        dt.del_rows_with_uppercase(self.df, 'first_name')
+        dt.delete_rows_with_string(self.df,'first_name', 'NULL', True)
+        dt.delete_rows_with_uppercase(self.df, 'first_name')
+        dt.convert_to_date(self.df, 'date_of_birth')
+        dt.check_emails(self.df, 'email_address')
+        dt.convert_to_category(self.df, 'country')
         dt.replace_string(self.df, 'country_code', 'GGB', 'GB')
-        columns_to_clean = {
-                                'date_of_birth':'date',
-                                'email_address':'email',
-                                'country':'category',
-                                'country_code':'category',
-                                'join_date':'date',
-                                'phone_number':'phone'
-                                }
-        clean_df = dt.clean_df(self.df, columns_to_clean)
+        dt.convert_to_category(self.df, 'country_code')
+        dt.clean_phone_numbers(self.df, 'phone_number')
+        dt.convert_to_date(self.df, 'join_date')
         print("COMPLETED\n")
-        return clean_df
+        return self.df
 
     def clean_orders_table(self):
+        '''Cleans orders table.'''
         print("CLEANING 'orders_table'...")
-        clean_df = dt.clean_df(self.df, {'product_code':'uppercase'})
-        columns_to_clean = {
-                                'store_code':'category',
-                                'product_code':'category',
-                                '1':'delete_column'
-                                }
-        clean_df = dt.clean_df(self.df, columns_to_clean)
+        dt.convert_to_category(self.df, 'store_code')
+        dt.convert_to_uppercase(self.df, 'product_code')
+        dt.convert_to_category(self.df, 'product_code')
+        dt.delete_column(self.df, '1')
         print("COMPLETED\n")
-        return clean_df
+        return self.df
 
-    def clean_card_data(self):
-        print("CLEANING 'card_df'...")
-        dt.del_rows_with_string(self.df,'expiry_date', 'NULL', True)
-        dt.del_rows_with_uppercase(self.df, 'expiry_date')
-        columns_to_clean = {
-                                'card_provider':'category',
-                                'date_payment_confirmed':'date',
-                                'expiry_date':'end_of_month'
-                                }
-        clean_df = dt.clean_df(self.df, columns_to_clean)
+    def clean_store_details(self):
+        '''Cleans store details.'''
+        print("CLEANING 'store_details'...")
+        dt.delete_rows_with_string(self.df, 'store_code', '-', False)
+        dt.convert_to_float(self.df, 'longitude')
+        dt.delete_column(self.df, 'lat')
+        dt.convert_to_integer(self.df, 'staff_numbers')
+        dt.convert_to_date(self.df, 'opening_date')
+        dt.convert_to_category(self.df, 'store_type')
+        dt.convert_to_float(self.df, 'latitude')
+        dt.convert_to_category(self.df, 'country_code')
+        dt.replace_string(self.df, 'continent', 'eeEurope', 'Europe')
+        dt.replace_string(self.df, 'continent', 'eeAmerica', 'America')
+        dt.convert_to_category(self.df, 'continent')
         print("COMPLETED\n")
-        return clean_df
+        return self.df
+    
+    def clean_card_data(self):
+        '''Cleans card data.'''
+        print("CLEANING 'card_df'...")
+        dt.delete_rows_with_string(self.df,'expiry_date', 'NULL', True)
+        dt.delete_rows_with_uppercase(self.df, 'expiry_date')
+        dt.convert_to_end_of_month(self.df, 'expiry_date')
+        dt.convert_to_category(self.df, 'card_provider')
+        dt.convert_to_date(self.df, 'date_payment_confirmed')
+        dt.clean_card_numbers(self.df, 'card_number')
+        print("COMPLETED\n")
+        return self.df
 
     def convert_product_weights(self):
+        '''Converts 'weight' column to floating point kg.'''
         print("CONVERTING product 'weight'...")
-        clean_df = dt.convert_weight(self.df, 'weight')
-        return clean_df
+        dt.convert_weight(self.df, 'weight')
+        return self.df
 
     def clean_products_data(self):
+        '''Cleans products data.'''
         print("CLEANING 'product_details'...")
-        dt.del_rows_with_uppercase(self.df, 'removed')
+        dt.delete_rows_with_uppercase(self.df, 'removed')
         dt.replace_string(self.df, 'removed', 'Still_avaliable', 'Still_available')
-        columns_to_clean = {
-                                'product_price':'float',
-                                'category':'category',
-                                'EAN':'category',
-                                'date_added':'date',
-                                'removed':'category',
-                                'product_code':'uppercase'
-                                }
-        clean_df = dt.clean_df(self.df, columns_to_clean)
+        dt.convert_to_float(self.df, 'product_price')
+        dt.convert_to_category(self.df, 'category')
+        dt.convert_to_category(self.df, 'EAN')
+        dt.convert_to_date(self.df, 'date_added')
+        dt.convert_to_category(self.df, 'removed')
+        dt.convert_to_uppercase(self.df, 'product_code')
         print("COMPLETED\n")
-        return clean_df
+        return self.df
 
     def clean_date_details(self):
+        '''Cleans date details.'''
         print("CLEANING 'date_details'...")
-        dt.del_rows_with_uppercase(self.df, 'time_period')
+        dt.delete_rows_with_uppercase(self.df, 'time_period')
         dt.combine_date(self.df)
-        columns_to_clean = {
-                                'month':'delete_column',
-                                'year':'delete_column',
-                                'day':'delete_column',
-                                'time_period':'category'
-                                }
-        clean_df = dt.clean_df(self.df, columns_to_clean)
+        dt.delete_column(self.df, 'month')
+        dt.delete_column(self.df, 'year')
+        dt.delete_column(self.df, 'day')
+        dt.convert_to_category(self.df, 'time_period')
         print("COMPLETED\n")
-        return clean_df
+        return self.df
+
+if __name__ == "__main__":
+    pass

@@ -1,6 +1,6 @@
-import yaml
 from sqlalchemy import create_engine
 from sqlalchemy import inspect
+import yaml
 
 class DatabaseConnector:
 
@@ -8,10 +8,12 @@ class DatabaseConnector:
         self.db = db
 
     def read_db_creds(self):
+        '''Reads the YAML file containing the database credentials.'''
         with open(self.db, 'r') as stream:
             return yaml.safe_load(stream)
     
     def init_db_engine(self):
+        '''Initialises the AWS RDS database using the credentials from the YAML file.'''
         data = self.read_db_creds()
         DATABASE_TYPE = 'postgresql'
         DBAPI = 'psycopg2'
@@ -24,12 +26,14 @@ class DatabaseConnector:
         return engine
 
     def list_db_tables(self):
+        '''Lists the tables present in the AWS RDS database.'''
         engine = self.init_db_engine()
         with engine.execution_options(isolation_level='AUTOCOMMIT').connect() as conn:
             inspector = inspect(engine)
         return inspector.get_table_names()
 
     def upload_to_db(self, df, table_name):
+        '''Uploads the Pandas Dataframe to the local PostgreSQL database.'''
         DATABASE_TYPE = 'postgresql'
         DBAPI = 'psycopg2'
         HOST = 'localhost'
@@ -39,6 +43,7 @@ class DatabaseConnector:
         PORT = 5432
         engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
         df.to_sql(table_name, engine, if_exists='replace', index=False)
+        print('=== Dataframe uploaded to PostgreSQL database ===\n')
 
 if __name__ == "__main__":
     pass
