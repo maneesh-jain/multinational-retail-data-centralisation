@@ -7,12 +7,14 @@ To extract, clean, upload and analyse data sets relating to a (dummy) multi-nati
 My goal was to write code that is easy to read and follow, whilst applying the DRY (don't repeat yourself) principle. To that end, functions and methods are re-used wherever possible
 
 ## Stages
-The project so far (10 August 2023) has the following stages:
+The project has the following stages:
 1. Download various data sets using Python (see below) from AWS RDS and S3
 2. Clean the data in Python using relevant libraries such as Pandas, Numpy, Datetime, Regex
 3. Upload the cleaned data sets to tables in a PostgreSQL database
-4. Refactor the code to improve readability and add a function to clean card_numbers in dim_card_details (see below)
+4. Refactor the code and add Docstrings to improve readability
 5. Clean PostgreSQL database: alter tables to update column types, add primary and foreign keys to create a star-based database schema
+6. Run queries (using JOIN, CASE, sub-query, formulae) on PostgreSQL database to derive business metrics
+7. Upload files to Github
 
 ## Python files & libraries (created by the author)
 
