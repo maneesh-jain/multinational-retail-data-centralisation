@@ -1,5 +1,5 @@
 rds_creds.yaml
-postgres_creds
+postgres_creds.yaml
 __pycache__/
 date_details.json
 products.csv
