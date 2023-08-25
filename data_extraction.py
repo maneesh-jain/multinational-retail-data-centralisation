@@ -63,6 +63,3 @@ class DataExtractor:
             df = pd.read_json(f)
         df.drop(columns=df.columns[0], axis=1,  inplace=True)
         return df
-
-if __name__ == "__main__":
-    pass

@@ -209,24 +209,8 @@ def convert_to_uppercase(df, col):
 
 def clean_card_numbers(df, col):
     '''
-    Deletes card numbers which contain '?' or are incorrect length.
-    Sources for card number length (in order of preference):
-    https://www.ibm.com/docs/en/order-management-sw/9.3.0?topic=solution-handling-credit-cards
-    https://en.wikipedia.org/wiki/Payment_card_number
+    Deletes card numbers which contain '?'
     '''
-    ## see comments below regarding card no. length checks
-    # card_no_length = {
-    #     'American Express':15, 
-    #     'Diners Club / Carte Blanche':14, 
-    #     'Discover':16, 
-    #     'JCB 16 digit':16, 
-    #     'JCB 15 digit':15, 
-    #     'Maestro':'12-19', # value stored as string to accomodate range
-    #     'Mastercard':16, 
-    #     'VISA 19 digit':19, 
-    #     'VISA 16 digit':16, 
-    #     'VISA 13 digit':13
-    #     }
     deleted_count = 0
     for ind in df.index:
         value = df.loc[ind, col]
@@ -234,22 +218,6 @@ def clean_card_numbers(df, col):
             df.drop(ind, axis=0, inplace=True)
             deleted_count += 1
             continue
-
-        ## the code below checks card no. length by issuer, but many matched those in the orders_table
-        ## even though they were too short (especially for Maestro), so it has been commented out
-        # provider = df.loc[ind, 'card_provider']
-        # length = card_no_length[provider]
-        # if type(length) == str: # i.e. where provider is Maestro
-        #     min = int(length.split('-')[0])
-        #     max = int(length.split('-')[1])
-        # else:
-        #     min = length
-        #     max = length
-        # if len(str(value)) < min or len(str(value)) > max:
-        #     df.drop(ind, axis=0, inplace=True)
-        #     deleted_count += 1
-        #     print(f"{value} deleted from '{col}' because wrong length for '{provider}'")
-        #     continue
 
     print(f"{deleted_count} rows deleted due to incorrect '{col}'")
     df[col] = df[col].astype('int64')
@@ -289,6 +257,3 @@ def combine_date(df):
     df['date'] = pd.to_datetime(df[['year', 'month', 'day']])
     print(f"'year', 'month', 'day' have been combined into a new 'date' column")
     return df
-
-if __name__ == "__main__":
-    pass

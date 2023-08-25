@@ -90,6 +90,3 @@ class DataCleaning:
         dt.convert_to_category(self.df, 'time_period')
         print("COMPLETED\n")
         return self.df
-
-if __name__ == "__main__":
-    pass

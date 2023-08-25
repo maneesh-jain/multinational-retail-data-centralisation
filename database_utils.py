@@ -4,7 +4,7 @@ import yaml
 
 class DatabaseConnector:
 
-    def __init__(self, db=""):
+    def __init__(self, db=''):
         self.db = db
 
     def read_db_creds(self):
@@ -13,15 +13,15 @@ class DatabaseConnector:
             return yaml.safe_load(stream)
     
     def init_db_engine(self):
-        '''Initialises the AWS RDS database using the credentials from the YAML file.'''
+        '''Initialises database (AWS RDS / PostgreSQL) using credentials from the YAML file.'''
         data = self.read_db_creds()
         DATABASE_TYPE = 'postgresql'
         DBAPI = 'psycopg2'
-        HOST = data['RDS_HOST']
-        PASSWORD = data['RDS_PASSWORD']
-        USER = data['RDS_USER']
-        DATABASE = data['RDS_DATABASE']
-        PORT = data['RDS_PORT']
+        HOST = data['HOST']
+        PASSWORD = data['PASSWORD']
+        USER = data['USER']
+        DATABASE = data['DATABASE']
+        PORT = data['PORT']
         engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
         return engine
 
@@ -34,16 +34,6 @@ class DatabaseConnector:
 
     def upload_to_db(self, df, table_name):
         '''Uploads the Pandas Dataframe to the local PostgreSQL database.'''
-        DATABASE_TYPE = 'postgresql'
-        DBAPI = 'psycopg2'
-        HOST = 'localhost'
-        PASSWORD = '3ve7xjaa'
-        USER = 'postgres'
-        DATABASE = 'sales_data'
-        PORT = 5432
-        engine = create_engine(f"{DATABASE_TYPE}+{DBAPI}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}")
+        engine = self.init_db_engine()
         df.to_sql(table_name, engine, if_exists='replace', index=False)
         print('=== Dataframe uploaded to PostgreSQL database ===\n')
-
-if __name__ == "__main__":
-    pass
