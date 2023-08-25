@@ -126,7 +126,7 @@ The following business queries are then answered by running _SQL_queries.sql_
 3. Which months produce the average highest cost of sales typically?
 4. How many sales are coming from online? 
 
-``` postgresql
+``` sql
 SELECT COUNT(store_code) AS numbers_of_sales, SUM(product_quantity) as product_quantity_count, 
 CASE
     WHEN store_code = 'WEB-1388012W' THEN 'Web'
@@ -138,7 +138,7 @@ GROUP BY location;
 
 5. What percentage of sales come through each type of store? 
 
-``` postgresql
+``` sql
 SELECT  store_type, 
         COUNT(store_type) AS total_sales, 
         COUNT(store_type) * 100 / 
